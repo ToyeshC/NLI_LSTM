@@ -8,6 +8,8 @@ class DatasetLoader(Dataset):
         self.dataset = dataset
         self.word_to_vec = word_to_vec
         self.embedding_dim = embedding_dim
+        label_to_index = {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+        self.data['label'] = [label_to_index[label] for label in self.data['label']]
 
     def __len__(self):
         return len(self.data['premise'])
@@ -55,11 +57,28 @@ def get_glove_embeddings(vocabulary_dict, glove_path):
     return word_to_vec
 
 
-def build_vocab(sentences, glove_path):
+def vocab_loader(sentences, glove_path):
     vocabulary_dict = get_vocab(sentences)
     word_to_vec = get_glove_embeddings(vocabulary_dict, glove_path)
     return word_to_vec
 
+
+def get_nli(data_path):
+    datasets = ['snli_1.0_train.jsonl', 'snli_1.0_dev.jsonl', 'snli_1.0_test.jsonl']
+    data = {'s1': [], 's2': [], 'label': []}
+
+    for dataset in datasets:
+        file_path = os.path.join(data_path, dataset)
+        with open(file_path, 'r') as f:
+            for line in f:
+                instance = json.loads(line)
+                label = instance.get('gold_label')
+                if label != '-':
+                    data['s1'].append(instance['sentence1'])
+                    data['s2'].append(instance['sentence2'])
+                    data['label'].append(label)
+
+    return data
 
 def collate_fn(batch):
     premise, s1_lengths, hypothesis, s2_lengths, labels = zip(*batch)
