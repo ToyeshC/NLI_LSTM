@@ -6,7 +6,7 @@ class Model_Loader(nn.Module):
         super(Model_Loader, self).__init__()
 
         self.fc_dim = config['fc_dim']
-        self.classes = config['classes']
+        self.n_classes = config['n_classes']
         self.encoder_dim = config['encoder_dim']
         self.encoder_type = config['encoder_type']
         self.embedding_dim = config['embedding_dim']
