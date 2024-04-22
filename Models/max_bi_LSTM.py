@@ -1,21 +1,19 @@
-class max_bi_LSTM(nn.Module):
-    def __init__(self, embedding_dim, hidden_dim, output_dim):
-        super(max_bi_LSTM, self).__init__()
-        self.embedding_dim = embedding_dim
-        self.hidden_dim = hidden_dim
-        self.embedding = nn.Embedding.from_pretrained(glove_vectors.vectors)
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim, batch_first=True, bidirectional=True)
-        self.fc = nn.Linear(hidden_dim * 2, output_dim)
+import torch
+import torch.nn as nn
 
-    def forward(self, premise, hypothesis):
-        premise_embedded = self.embedding(premise)
-        lstm_out, _ = self.lstm(premise_embedded)
-        premise_hidden = torch.max(lstm_out, dim=1)[0]
-        
-        hypothesis_embedded = self.embedding(hypothesis)
-        lstm_out, _ = self.lstm(hypothesis_embedded)
-        hypothesis_hidden = torch.max(lstm_out, dim=1)[0]
+class Bi_LSTM_Max(nn.Module):
+    def __init__(self, config):
+        super(Bi_LSTM_Max, self).__init__()
+        self.embedding_dim = config['embedding_dim']
+        self.encoder_dim = config['encoder_dim']
+        self.model_new = config['model_new']
+        self.lstm_encoder = nn.LSTM(self.embedding_dim, self.encoder_dim, batch_first=True, dropout=self.model_new, bidirectional=True)
 
-        concatenated = torch.cat((premise_hidden, hypothesis_hidden), dim=1)
-        output = self.fc(concatenated)
-        return output
+    def forward(self, sentence_list):
+        sentence, sentence_length = sentence_list
+        packed = nn.utils.rnn.pack_padded_sequence(sentence, sentence_length, batch_first=True, enforce_sorted=False)
+        output, (h_n, c_n) = self.lstm_encoder(packed)
+        output, _ = nn.utils.rnn.pad_packed_sequence(output, batch_first=True)
+        result, _ = torch.max(output, dim=1)
+
+        return result

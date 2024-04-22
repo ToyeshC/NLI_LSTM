@@ -1,8 +1,6 @@
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from datasets import load_dataset
-import numpy as np
-import os
 
 
 class DatasetLoader(Dataset):
@@ -55,7 +53,6 @@ def get_glove_embeddings(vocabulary_dict, glove_path):
                 word_to_vec[word] = list(map(float, vec.split()))
 
     return word_to_vec
-
 
 
 def build_vocab(sentences, glove_path):
